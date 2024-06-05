@@ -1,0 +1,17 @@
+{
+    "name": "Bittle",
+    "short_name": "Bittle",
+    "id": "bittlepwa1",
+    "description": "Come Wordle, ma più bello",
+    "icons": [
+        {
+            "src": "pwaicon.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable any"
+        }
+    ],
+    "start_url": "index.html",
+    "scope": "/bittle/prova1/",
+    "display": "standalone"
+}

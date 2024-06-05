@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>Bittle</title>
+        <link rel="stylesheet" type="text/css" href="style.css" />
+        <script src="app.js" type="text/javascript"></script>
+        <link rel="manifest" href="manifest.json" />
+        <link rel="icon" type="image/png" href="favicon.png" />
+        <meta name="viewport" content="width=device-width" />
+    </head>
+    <body onload = init()>
+        <script src="src/js/dizionario.js"></script>
+<!-- SLIDE IMPOSTAZIONI -->
+        <div id = "angolato">
+            <div id = "connetti">
+                <img src="src/img/loading.gif" alt="Caricamento..." style="width: 40px; height: 40px; margin-right: 1rem; visibility: hidden" id="loading">
+                <div style = "background: transparent; color: darkgray; width: text-align: right; margin-right:0;" id = "lblConnetti">Connetti al server</div>
+                <input type="checkbox" id="checkbox" onchange = "cambiaStato()" style = "position: absolute; right: 0;">
+            </div>
+        </div>
+        <div id = "settings" class = "slide">
+            <img src="src/img/scritta.png" id="logo" alt="logo"/>
+            <div id = "centred">
+    <!-- IMPOSTAZIONI -->
+                <img src="src/img/help.png" id="help" alt="help" onclick = "document.getElementById('popup-istruzioni').style.display = 'block'"/>
+                <div class="campo">
+                    <span>Max win streak:   </span>
+                    <span id="maxStreak"></span>
+                </div>
+                <div class="campo">
+                    <span>Win streak attuale:   </span>
+                    <span class="streak"></span>
+                </div>
+                <div class = "separatore"></div>
+                <div class="campo">
+                    <button onclick="prec('lingua')" class="freccia">&lt;</button>
+                    <input type="text" id="lingua" value="Italiano" class="opzione" readonly onclick="next('lingua')" style="cursor:pointer;">
+                    <button onclick="next('lingua')" class="freccia">&gt;</button>
+                </div>
+                <div class="campo">
+                    <button onclick="prec('difficoltà')" class="freccia">&lt;</button>
+                    <input type="text" id="difficoltà" name="difficulty" value="Facile" class="opzione" readonly onclick="next('difficoltà')" style="cursor:pointer;">
+                    <button onclick="next('difficoltà')" class="freccia">&gt;</button>
+                </div>
+                <div class = "separatore"></div>
+                <div class = "campo">
+    <!-- BOTTONE PLAY -->
+                    <button class="btn" onclick="play()">PLAY</button>
+                </div>
+            </div>
+        </div>
+        <div id="popup-istruzioni" class='popup'>
+                <img src="src/img/exit.png" id="exit" onclick = "document.getElementById('popup-istruzioni').style.display = 'none'"/>
+
+                <div id = "generale">
+                    <span class="istruzione">Istruzioni generali</span>
+                    <div class = "separatore"></div>
+                    <p class="testo">
+                        Indovina la parola nascosta di 5 lettere, entro un massimo di 5 tentativi</br></br>
+                        Ogni parola, per essere convalidata, DEVE esistere
+                    </p>
+                </div>
+
+                <div id = "istruzioniStreak">
+                    <span class="istruzione">Gestione della streak di vittorie</span>
+                    <div class = "separatore"></div>
+                    <p class="testo">
+                        La streak aumenta ad ogni partita vinta e si azzera ad ogni sconfitta </br></br>
+                        Se la partita viene giocata offline o se si verifica una disconnessione temporanea, la streak non aumenta, ma può comunque azzerarsi in caso di sconfitta
+                    </p>
+                </div>
+
+                <div id = "facile">
+                    <span class="istruzione">Facile</span>
+                    <div class = "separatore"></div>
+                    <p class="testo">
+                        Ogni lettera CORRETTA viene colorata di VERDE  </br>
+                        Ogni lettera SBAGLIATA viene colorata di ROSSO </br>
+                        Ogni lettera corretta ma nella POSIZIONE SBAGLIATA viene colorata di GIALLO </br></br>
+                        Dopo ogni tentativo viene suggerita una lettera, fino ad un totale di 3 (indovinate comprese)
+                    </p>
+                </div>
+
+                <div id = "difficile">
+                    <span class="istruzione">Difficile</span>
+                    <div class = "separatore"></div>
+                    <p class="testo">
+                        Simile alla modalità facile, ma il vocabolario dal quale vengono estratte le parole da indovinare è più ampio e complesso </br></br>
+                        Non sono presenti suggerimenti
+                    </p>
+                </div>
+
+                <div id = "impossibile">
+                    <span class="istruzione">Impossibile</span>
+                    <div class = "separatore"></div>
+                    <p class="testo" style="margin-bottom:0;">
+                        Al contrario delle altre difficoltà, non vengono confrontate le singole lettere, ma i binari dei codici ASCII di ciascuna </br></br>
+                        Nella cella verrà inserito il decimale ottenuto dall'operazione AND tra i 2 binari
+                    </p>
+                </div>
+            </div>
+<!-- SLIDE GIOCO -->
+        <div id = "game" class = "slide">
+            <!--BACKGROUND-->
+            <video autoplay muted loop id="video-background">
+                <source src="src/vid/background.mp4" type="video/mp4">
+            </video>
+            <audio loop id = "background-audio">
+                <source src="src/audio/audio.mp3" type="audio/mpeg">
+            </audio>
+
+            <div id="ripple"></div>
+    <!-- TABELLA WORDLE 5X5 statica temporanea: da generare poi dinamicamente con js in base alla difficoltà -->
+            <div id = "tabella">
+                <div class = "row">
+                    <div class = "cella"></div>
+                    <div class = "cella"></div>
+                    <div class = "cella"></div>
+                    <div class = "cella"></div>
+                    <div class = "cella"></div>
+                </div>
+                <div class = "row">
+                    <div class = "cella"></div>
+                    <div class = "cella"></div>
+                    <div class = "cella"></div>
+                    <div class = "cella"></div>
+                    <div class = "cella"></div>
+                </div>
+                <div class = "row">
+                    <div class = "cella"></div>
+                    <div class = "cella"></div>
+                    <div class = "cella"></div>
+                    <div class = "cella"></div>
+                    <div class = "cella"></div>
+                </div>
+                <div class = "row">
+                    <div class = "cella"></div>
+                    <div class = "cella"></div>
+                    <div class = "cella"></div>
+                    <div class = "cella"></div>
+                    <div class = "cella"></div>
+                </div>
+                <div class = "row">
+                    <div class = "cella"></div>
+                    <div class = "cella"></div>
+                    <div class = "cella"></div>
+                    <div class = "cella"></div>
+                    <div class = "cella"></div>
+                </div>
+            </div>
+<!-- LAYOUT KEYBOARD -->
+            <div id="tastiera">
+                <div class="tasto lettera" value="Q" onclick="simulaPressione('Q')">Q</div>
+                <div class="tasto lettera" value="W" onclick="simulaPressione('W')">W</div>
+                <div class="tasto lettera" value="E" onclick="simulaPressione('E')">E</div>
+                <div class="tasto lettera" value="R" onclick="simulaPressione('R')">R</div>
+                <div class="tasto lettera" value="T" onclick="simulaPressione('T')">T</div>
+                <div class="tasto lettera" value="Y" onclick="simulaPressione('Y')">Y</div>
+                <div class="tasto lettera" value="U" onclick="simulaPressione('U')">U</div>
+                <div class="tasto lettera" value="I" onclick="simulaPressione('I')">I</div>
+                <div class="tasto lettera" value="O" onclick="simulaPressione('O')">O</div>
+                <div class="tasto lettera" value="P" onclick="simulaPressione('P')">P</div>
+                <div class="piccolo"> </div>
+                <div class="tasto lettera" value="A" onclick="simulaPressione('A')">A</div>
+                <div class="tasto lettera" value="S" onclick="simulaPressione('S')">S</div>
+                <div class="tasto lettera" value="D" onclick="simulaPressione('D')">D</div>
+                <div class="tasto lettera" value="F" onclick="simulaPressione('F')">F</div>
+                <div class="tasto lettera" value="G" onclick="simulaPressione('G')">G</div>
+                <div class="tasto lettera" value="H" onclick="simulaPressione('H')">H</div>
+                <div class="tasto lettera" value="J" onclick="simulaPressione('J')">J</div>
+                <div class="tasto lettera" value="K" onclick="simulaPressione('K')">K</div>
+                <div class="tasto lettera" value="L" onclick="simulaPressione('L')">L</div>
+                <div class="piccolo"></div>
+                <div class="tasto grande" onclick="simulaPressione('Enter')">Enter</div>
+                <div class="tasto lettera" value="Z" onclick="simulaPressione('Z')">Z</div>
+                <div class="tasto lettera" value="X" onclick="simulaPressione('X')">X</div>
+                <div class="tasto lettera" value="C" onclick="simulaPressione('C')">C</div>
+                <div class="tasto lettera" value="V" onclick="simulaPressione('V')">V</div>
+                <div class="tasto lettera" value="B" onclick="simulaPressione('B')">B</div>
+                <div class="tasto lettera" value="N" onclick="simulaPressione('N')">N</div>
+                <div class="tasto lettera" value="M" onclick="simulaPressione('M')">M</div>
+                <div class="tasto grande" onclick="simulaPressione('Backspace')">Back</div>
+            </div>
+            <div id="popup-risultato" class="popup">
+                <div id="esito"></div>
+                <div class="separatore"></div>
+                <div class="campo">
+                    Win streak attuale:
+                    <span></span>
+                </div>
+                <div class="campo">
+                    <span></span>
+                </div>
+                <div class="separatore"></div>
+                <div class="separatore"></div>
+                <div class="button-container">
+                    <button class="btn" style="color: white; width: 16rem;" onclick="giocaAncora()">Gioca ancora</button>
+                    <div class="separatore speciale"></div>
+                    <button class="btn" style="color: white; width: 16rem;" onclick="tornaHome()">Torna alla home</button>
+                </div>
+            </div>
+            <div id="popup-allerta" class='popup'>
+                <img src="src/img/exit.png" id="exit" onclick = "document.getElementById('popup-allerta').style.display = 'none'; document.addEventListener('keydown', tastoPremuto);"/>
+                <span style="font-size: 1.5rem;">Sicuro di voler tornare alla home?</span>
+                <div class = "separatore"></div>
+                <span style="font-size: 1.2rem;">Perderai la streak</span>
+                <div class="separatore" style="height: 1.5rem;"></div>
+                <div class="button-container">
+                    <button class="btn" style="color: white; width: 16rem;" onclick="localStorage.streak = '0'; document.getElementById('popup-allerta').style.display = 'none'; tornaHome();">Torna alla home</button>
+                </div>
+            </div>
+            <div id="impostazioni">
+                <img src="src/img/home.png" id="home" onclick = "avvertiUtente()"/>
+                <div class="separatore specialissimo"></div>
+                <img src="src/img/volumeOn.png" id="volume" onclick = "modificaVolume(this, document.getElementById('background-audio'))"/>
+            </div>
+        </div>
+<!-- CHIAMO LA FUNZIONE toSlide PER MOSTRARE LA HOME (prima slide, in questo caso ancora da creare) -->
+        <script type = "text/javascript">
+            toSlide("settings")
+        </script>
+        <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js'></script>
+		<script src='https://cdn.jsdelivr.net/npm/jquery.ripples@0.6.3/dist/jquery.ripples.min.js'></script>-->
+		<script src="src/js/ripple.js"></script>
+	</body>
+</html>
